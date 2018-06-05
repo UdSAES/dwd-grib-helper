@@ -42,7 +42,7 @@ async function readAndParseGrib2File(filePath) {
     encoding: null
   })
 
-  tmpFile.removeCallback()
+  tmpFile.cleanup()
   const grib2Array = grib2(fileContentBuffer)
   return grib2Array
 }
