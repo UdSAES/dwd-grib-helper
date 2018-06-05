@@ -70,7 +70,7 @@ async function extractTimeseriesDataFromGrib2Directory(directoryPath, coordinate
   }, 10)
 
   timeseriesData = _.sortBy(timeseriesData, (item) => {
-    return item.ts
+    return item.timestamp
   })
 
   return timeseriesData
