@@ -1,0 +1,17 @@
+{
+  "name": "dwd-grib-helper",
+  "version": "0.1.0",
+  "description": "Helper package to access grib files provided by DWD and downloaded by data crawler",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Florian Wagner <florian.wagner@aut.uni-saarland.de>",
+  "license": "ISC",
+  "dependencies": {
+    "async-parallel": "^1.2.3",
+    "child-process-promise": "^2.2.1",
+    "grib2-simple": "^1.0.0",
+    "tmp-promise": "^1.0.4"
+  }
+}

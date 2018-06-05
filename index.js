@@ -1,0 +1,84 @@
+'use strict'
+
+const grib2 = require('grib2-simple')
+const _ = require('lodash')
+const fs = require('fs-extra')
+const moment = require('moment')
+const path = require('path')
+const parallel = require('async-parallel')
+const exec = require('child-process-promise').exec
+const tmp = require('tmp-promise')
+
+function convertIntegerNumberToString(number, minLength) {
+  let numberString = '' + number
+  while (numberString.length < minLength) {
+    numberString = '0' + numberString
+  }
+
+  return numberString
+}
+
+function deriveGrib2FilePath(referenceTimeStamp, forecastTimestamp, sourceKey) {
+  const referenceDateTimeString = moment.utc(referenceTimeStamp).format('YYYYMMDDHH')
+  const timeOffsetHours = Math.floor((forecastTimestamp - referenceTimeStamp) / 1000 / 3600)
+
+  const fileName = 'cosmo-d2_germany_regular-lat-lon_single-level_' + referenceDateTimeString + '_' + convertIntegerNumberToString(timeOffsetHours, 3) + '_' + _.toUpper(sourceKey) + '.grib2.lz4'
+
+  return fileName
+}
+
+function deriveGrib2DirectoryPath(gribBasePath, referenceTimeStamp, sourceKey) {
+  const referenceDateTimeString = moment.utc(referenceTimeStamp).format('YYYYMMDDHH')
+  path.join(gribBasePath, referenceDateTimeString, _.toLower(sourceKey))
+  return path.join(gribBasePath, referenceDateTimeString, _.toLower(sourceKey))
+}
+
+async function readAndParseGrib2File(filePath) {
+  const tmpFile = await tmp.file()
+
+  const execCommand = 'lz4 -d -f ' + filePath + ' ' + tmpFile.path
+  const result = await exec(execCommand)
+  const fileContentBuffer = await fs.readFile(tmpFile.path, {
+    encoding: null
+  })
+
+  tmpFile.removeCallback()
+  const grib2Array = grib2(fileContentBuffer)
+  return grib2Array
+}
+
+async function extractTimeseriesDataFromGrib2Directory(directoryPath, coordinates) {
+  const fileNames = await fs.readdir(directoryPath)
+  let filteredFileNames = _.filter(fileNames, (item) => {
+    return item.indexOf('regular-lat-lon') >= 0
+  })
+
+  filteredFileNames = _.sortBy(filteredFileNames)
+  let timeseriesData = []
+  await parallel.each(filteredFileNames, async (fileName) => {
+    const filePath = path.join(directoryPath, fileName)
+    const grib2Array = await readAndParseGrib2File(filePath)
+
+    _.forEach(grib2Array, (grib2Item) => {
+      const value = grib2Item.getValue(coordinates.lon, coordinates.lat)
+      const timestamp = grib2Item.forecastTimestamp
+      timeseriesData.push({
+        timestamp,
+        value
+      })
+    })
+  }, 10)
+
+  timeseriesData = _.sortBy(timeseriesData, (item) => {
+    return item.ts
+  })
+
+  return timeseriesData
+}
+
+exports.readAndParseGrib2File = readAndParseGrib2File
+exports.deriveGrib2DirectoryPath = deriveGrib2DirectoryPath
+exports.deriveGrib2FilePath = deriveGrib2FilePath
+exports.extractTimeseriesDataFromGrib2Directory = extractTimeseriesDataFromGrib2Directory
+
+module.exports = exports
