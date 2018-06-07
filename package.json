@@ -1,6 +1,6 @@
 {
   "name": "dwd-grib-helper",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Helper package to access grib files provided by DWD and downloaded by data crawler",
   "main": "index.js",
   "scripts": {
