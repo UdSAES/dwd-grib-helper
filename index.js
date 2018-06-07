@@ -22,7 +22,14 @@ function deriveGrib2FilePath(referenceTimeStamp, forecastTimestamp, sourceKey) {
   const referenceDateTimeString = moment.utc(referenceTimeStamp).format('YYYYMMDDHH')
   const timeOffsetHours = Math.floor((forecastTimestamp - referenceTimeStamp) / 1000 / 3600)
 
-  const fileName = 'cosmo-d2_germany_regular-lat-lon_single-level_' + referenceDateTimeString + '_' + convertIntegerNumberToString(timeOffsetHours, 3) + '_' + _.toUpper(sourceKey) + '.grib2.lz4'
+  let fileName
+
+  // here we need a switch to handel COMSO DE files and COSME D2 files, switch has taken place on 15th May 2018
+  if (referenceTimestamp >= moment.utc('2018-05-15').valueOf()) {
+    fileName = 'cosmo-d2_germany_regular-lat-lon_single-level_' + referenceDateTimeString + '_' + convertIntegerNumberToString(timeOffsetHours, 3) + '_' + _.toUpper(sourceKey) + '.grib2.lz4'
+  } else {
+    fileName = 'COSMODE_single_level_elements_' + _.toUpper(sourceKey) + '_' + referenceDateTimeString + '_' + convertIntegerNumberToString(timeOffsetHours, 3) + '.grib2.lz4'
+  }
 
   return fileName
 }
@@ -50,7 +57,7 @@ async function readAndParseGrib2File(filePath) {
 async function extractTimeseriesDataFromGrib2Directory(directoryPath, coordinates) {
   const fileNames = await fs.readdir(directoryPath)
   let filteredFileNames = _.filter(fileNames, (item) => {
-    return item.indexOf('regular-lat-lon') >= 0
+    return item.indexOf('regular-lat-lon') >= 0 || item.indexOf('COSMODE') === 0
   })
 
   filteredFileNames = _.sortBy(filteredFileNames)
