@@ -86,7 +86,7 @@ async function extractTimeseriesDataFromGrib2Directory(directoryPath, coordinate
     location: gridLocation,
     timeseriesData
   }
-  return timeseriesData
+  return result
 }
 
 exports.readAndParseGrib2File = readAndParseGrib2File
