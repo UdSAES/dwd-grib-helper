@@ -62,12 +62,14 @@ async function extractTimeseriesDataFromGrib2Directory(directoryPath, coordinate
 
   filteredFileNames = _.sortBy(filteredFileNames)
   let timeseriesData = []
+  let gridLocation
   await parallel.each(filteredFileNames, async (fileName) => {
     const filePath = path.join(directoryPath, fileName)
     const grib2Array = await readAndParseGrib2File(filePath)
-
+    
     _.forEach(grib2Array, (grib2Item) => {
       const value = grib2Item.getValue(coordinates.lon, coordinates.lat)
+      gridLocation = grib2Item.getGridLocation(coordinates.lon, coordinates.lat)
       const timestamp = grib2Item.forecastTimestamp
       timeseriesData.push({
         timestamp,
@@ -80,6 +82,10 @@ async function extractTimeseriesDataFromGrib2Directory(directoryPath, coordinate
     return item.timestamp
   })
 
+  const result = {
+    location: gridLocation,
+    timeseriesData
+  }
   return timeseriesData
 }
 

@@ -11,7 +11,7 @@
   "dependencies": {
     "async-parallel": "^1.2.3",
     "child-process-promise": "^2.2.1",
-    "grib2-simple": "^1.0.0",
+    "grib2-simple": "^1.1.0",
     "tmp-promise": "^1.0.4"
   }
 }
